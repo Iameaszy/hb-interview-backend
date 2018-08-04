@@ -7,13 +7,15 @@ const fs = require('fs');
 
 const photosPath = `${__dirname}/../../public/images/photos`;
 const thumbnailsPath = `${__dirname}/../../public/images/thumbnails`;
+const logger = require('../../config/winston');
+
 const { SECRET } = process.env;
 const router = express.Router();
 let cachedUrl;
 let name;
 
 module.exports = (app) => {
-  app.use('/photo', router);
+  app.use('/thumbnail', router);
 };
 router.use((req, res, next) => {
   if (!req.headers.authorization) {
@@ -26,48 +28,45 @@ router.use((req, res, next) => {
 router.post('/create', async (req, res, next) => {
   const { url } = req.body;
   if (!url) {
-    return res.status(400).end('Invalid url');
+    return res.status(400).send('Invalid url');
   }
   if (!verifyUrl(url)) {
     return res.status(400).send('Invalid url');
   }
-  let user;
   /* cache the url incase duplicate request */
   if (url === cachedUrl) {
     return fs.readFile(`${thumbnailsPath}/${name}.png`, (err, data) => {
       if (err) {
-        return console.log(err);
+        return next(err);
       }
       res.set({ 'Content-Type': 'image/png' });
       return res.send(data);
     });
   }
-  cachedUrl = url;
 
   // verify token
+  let user;
   try {
     user = jwt.verify(req.token, SECRET);
   } catch (e) {
-    next(e);
+    return res.status(401).send('Invalid token');
   }
-  if (!user) {
-    res.status(401).send('Unauthorised Access');
-  }
-  let filename;
+
   // Download image
+  let filename;
   try {
     ({ filename } = await download.image({
       url,
       dest: photosPath,
     }));
   } catch (e) {
-    return res
-      .status(500)
-      .send('an error occured while downloading the image, please try again');
+    return next(
+      'an error occured while downloading the image, please try again',
+    );
   }
 
-  ({ name } = path.parse(filename));
   // Resize operation
+  ({ name } = path.parse(filename));
   im.resize(
     {
       srcPath: filename,
@@ -80,27 +79,35 @@ router.post('/create', async (req, res, next) => {
         return next(err);
       }
 
-      console.log('thumbnail generated');
+      logger.info('thumbnail generated');
       // Remove the downloaded url
       fs.unlink(`${filename}`, (err) => {
         if (err) {
-          return console.log(err);
+          return logger.info(err);
         }
-        console.log(name, ' removed');
+        logger.info(name, 'removed');
       });
 
-      fs.readFile(`${thumbnailsPath}/${name}.png`, (err, data) => {
+      return fs.readFile(`${thumbnailsPath}/${name}.png`, (err, data) => {
         if (err) {
-          return console.log(err);
+          return logger.info(err);
         }
+        cachedUrl = url;
         res.set({ 'Content-Type': 'image/png' });
-        res.send(data);
+        return res.send(data);
       });
     },
   );
 });
 
+/**
+ * @description - Url validotor
+ * @author (Yusuf Adeniyi)
+ * @date 2018-08-04
+ * @param {string} url
+ * @returns - true or false
+ */
 function verifyUrl(url) {
-  const regex = /^(http:\/\/|https:\/\/)(www\.)*[a-zA-Z0-9-/.?_@!#$%^&*()]+.(jpg|png|webp|gif|jpeg|)$/i;
+  const regex = /^(http:\/\/|https:\/\/)(www\.)*[a-zA-Z0-9-/.?_@!#$%^&*()]+\.(jpg|png|webp|gif|jpeg|)$/i;
   return regex.test(url);
 }

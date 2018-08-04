@@ -1,7 +1,6 @@
 const express = require('express');
 const glob = require('glob');
-
-const logger = require('morgan');
+const morgan = require('morgan');
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
 const compress = require('compression');
@@ -12,6 +11,8 @@ const flash = require('express-flash');
 const dotenv = require('dotenv');
 const session = require('express-session');
 
+const logger = require('./winston');
+
 const rootDir = `${__dirname}/../`;
 module.exports = (app) => {
   // dotenv configuration
@@ -21,7 +22,8 @@ module.exports = (app) => {
   app.locals.ENV_DEVELOPMENT = env === 'development';
 
   // app.use(favicon(config.root + '/public/img/favicon.ico'));
-  app.use(logger('dev'));
+
+  app.use(morgan('combined', { stream: logger.stream }));
   app.use(bodyParser.json());
   app.use(
     bodyParser.urlencoded({
@@ -55,14 +57,19 @@ module.exports = (app) => {
 
   app.use((req, res, next) => {
     const err = new Error('Not Found');
-    err.status = 404;
+    err.status = 404
     next(err);
   });
 
   if (app.get('env') === 'development') {
     app.use((err, req, res, next) => {
+      logger.error(
+        `${err.status || 500} - ${err.message} - ${req.originalUrl} - ${
+          req.method
+        } - ${req.ip}`,
+      );
       res.status(err.status || 500);
-      res.send(err.message);
+      res.end(err.message);
     });
   }
   return app;

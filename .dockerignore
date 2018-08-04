@@ -1,0 +1,14 @@
+node_modules/
+.env
+.nyc_output
+coverage
+*.lcov
+.vscode/
+.yo-rc.json
+.bowerrc
+.editorconfig
+bower.json
+logs/app.log
+*.log
+out/
+public/images/thumbnails/15332229122420.png

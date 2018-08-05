@@ -7,14 +7,11 @@ const compress = require('compression');
 const methodOverride = require('method-override');
 const cors = require('cors');
 const dotenv = require('dotenv');
-const raven = require('raven');
 
 const logger = require('./winston');
 
 const rootDir = `${__dirname}/../`;
 module.exports = (app) => {
-  // Error monitoring configuration
-  raven.config('__DSN__').install();
   // dotenv configuration
   dotenv.config();
   const env = process.env.NODE_ENV || 'development';
@@ -23,7 +20,6 @@ module.exports = (app) => {
 
   // app.use(favicon(config.root + '/public/img/favicon.ico'));
 
-  app.use(raven.requestHandler());
   app.use(morgan('combined', { stream: logger.stream }));
   app.use(bodyParser.json());
   app.use(
@@ -51,7 +47,6 @@ module.exports = (app) => {
     next(err);
   });
 
-  app.use(raven.errorHandler());
   if (app.get('env') === 'development') {
     app.use((err, req, res, next) => {
       logger.error(

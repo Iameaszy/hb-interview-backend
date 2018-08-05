@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/Iameaszy/hb-interview-backend.svg?branch=master)](https://travis-ci.org/Iameaszy/hb-interview-backend)
+
 # Hackerbay Interview Backend Task
 
 This is an interview task for [Hackerbay](https://hackerbay.io/)
@@ -18,7 +20,7 @@ example: git clone hb-interview-backend
 # Installing
 
 open the folder that contain the project and then in your terminal press this command `npm install` to install the dependencies and then press `npm start` to start the server at localhost:3000
-**note: you must pass in the environment variable **SECRET** **
+**note: you must pass in the environment variable **SECRET\*\* \*\*
 
 # Running the tests
 

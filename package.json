@@ -5,7 +5,7 @@
   "main": "app.js",
   "scripts": {
     "start": "node app.js",
-    "test": "./node_modules/.bin/mocha --recursive ",
+    "test": "nyc ./node_modules/.bin/mocha --recursive ",
     "coverage": "nyc report --reporter=text-lcov > coverage.lcov && codecov -t 80bafa12-a119-41e9-a00d-a4d2c18cb638",
     "test:unit": " nyc mocha --recursive ",
     "lint": "eslint test/**/*.js app/**/*.js config/**/*.js"

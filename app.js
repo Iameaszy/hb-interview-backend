@@ -8,7 +8,7 @@ require('dotenv').config();
 require('./config/express')(app);
 
 const server = app.listen(3000, () => {
-  logger.info(`Express server listening on port ${3000}`);
+  logger.info(`Express server listening on port ${3000} `);
 });
 
 module.exports = {

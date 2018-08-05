@@ -3,7 +3,7 @@ const request = require('supertest');
 const { app, server } = require('./../../app');
 
 const { expect } = chai;
-
+const validUrl = 'https://cdn.pixabay.com/photo/2017/02/11/03/43/butterfly-2056977_640.png';
 describe('post /photo', () => {
   let token;
   before((done) => {
@@ -100,7 +100,6 @@ describe('post /photo', () => {
       });
   });
 
-
   it('should return 401 status code ', (done) => {
     const invalidToken = 'aaa';
     request(app)
@@ -140,8 +139,7 @@ describe('post /photo', () => {
       .set('Authorization', token)
       .type('form')
       .send({
-        url:
-          'https://e00-marca.uecdn.es/assets/multimedia/imagenes/2018/08/02/15332229122420.jpg',
+        url: validUrl,
       })
       .end((err, res) => {
         if (err) {

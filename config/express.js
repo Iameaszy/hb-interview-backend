@@ -6,15 +6,15 @@ const bodyParser = require('body-parser');
 const compress = require('compression');
 const methodOverride = require('method-override');
 const cors = require('cors');
-const passport = require('passport');
-const flash = require('express-flash');
 const dotenv = require('dotenv');
-const session = require('express-session');
+const raven = require('raven');
 
 const logger = require('./winston');
 
 const rootDir = `${__dirname}/../`;
 module.exports = (app) => {
+  // Error monitoring configuration
+  raven.config('__DSN__').install();
   // dotenv configuration
   dotenv.config();
   const env = process.env.NODE_ENV || 'development';
@@ -23,6 +23,7 @@ module.exports = (app) => {
 
   // app.use(favicon(config.root + '/public/img/favicon.ico'));
 
+  app.use(raven.requestHandler());
   app.use(morgan('combined', { stream: logger.stream }));
   app.use(bodyParser.json());
   app.use(
@@ -39,17 +40,6 @@ module.exports = (app) => {
       origin: 'http://localhost:3001',
     }),
   );
-  app.use(
-    session({
-      secret: 'secret',
-      saveUninitialized: false,
-      resave: true,
-    }),
-  );
-  app.use(flash());
-  app.use(passport.initialize());
-  app.use(passport.session());
-
   const controllers = glob.sync(`${rootDir}/app/controllers/*.js`);
   controllers.forEach((controller) => {
     require(controller)(app);
@@ -57,10 +47,11 @@ module.exports = (app) => {
 
   app.use((req, res, next) => {
     const err = new Error('Not Found');
-    err.status = 404
+    err.status = 404;
     next(err);
   });
 
+  app.use(raven.errorHandler());
   if (app.get('env') === 'development') {
     app.use((err, req, res, next) => {
       logger.error(
@@ -70,6 +61,15 @@ module.exports = (app) => {
       );
       res.status(err.status || 500);
       res.end(err.message);
+    });
+  } else if (app.get('env') === 'production') {
+    app.use((err, req, res, next) => {
+      logger.error(
+        `${err.status || 500} - ${err.message} - ${req.originalUrl} - ${
+          req.method
+        } - ${req.ip}`,
+      );
+      res.end();
     });
   }
   return app;

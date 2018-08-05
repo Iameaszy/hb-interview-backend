@@ -1,10 +1,9 @@
 FROM node:8
 
-WORKDIR /home/nodejs/hb-interview-backend
-
-COPY package*.json ./
-RUN npm install
+WORKDIR /app
+COPY package.json /app/
+RUN npm config set registry https://registry.npmjs.org/
+RUN npm install -dd
 COPY . .
-ENV NODE_ENV development
 EXPOSE 3000
-cmd ['npm','start']
+CMD ["npm","start"]

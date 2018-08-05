@@ -2,7 +2,9 @@ const express = require('express');
 
 const app = express();
 const logger = require('./config/winston');
+
 require('dotenv').config();
+
 require('./config/express')(app);
 
 const server = app.listen(3000, () => {

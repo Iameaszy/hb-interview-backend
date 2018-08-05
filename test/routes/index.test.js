@@ -46,8 +46,6 @@ describe('post /login', () => {
   });
 });
 
-
-
 describe('post /patch', () => {
   let token;
   before((done) => {
@@ -60,7 +58,7 @@ describe('post /patch', () => {
           return done(err);
         }
         ({ token } = res.body);
-        done();
+        return done();
       });
   });
 
@@ -74,14 +72,16 @@ describe('post /patch', () => {
       .expect(401, done);
   });
 
-
   it('should have Invalid token as error response text', (done) => {
     const invalidToken = 'aaaa';
     request(app)
       .post('/patch')
       .type('form')
       .set('Authorization', invalidToken)
-      .send({ data: { name: 'Yusuf' }, patch: [{ op: 'replace', path: '/name', value: 'Ayinla' }] })
+      .send({
+        data: { name: 'Yusuf' },
+        patch: [{ op: 'replace', path: '/name', value: 'Ayinla' }],
+      })
       .end((err, res) => {
         if (err) {
           return done(err);
@@ -125,7 +125,10 @@ describe('post /patch', () => {
       .post('/patch')
       .set('Authorization', token)
       .type('form')
-      .send({ data: { name: 'Yusuf' }, patch: [{ op: 'replace', path: '/name', value: 'Ayinla' }] })
+      .send({
+        data: { name: 'Yusuf' },
+        patch: [{ op: 'replace', path: '/name', value: 'Ayinla' }],
+      })
       .expect(200, done);
   });
 
@@ -159,7 +162,7 @@ describe('post /patch', () => {
       .post('/patch')
       .set('Authorization', token)
       .type('form')
-      .send({patch: [{ op: 'replace', path: '/name', value: 'Ayinla' }] })
+      .send({ patch: [{ op: 'replace', path: '/name', value: 'Ayinla' }] })
       .end((err, res) => {
         if (err) {
           return done(err);
@@ -174,7 +177,10 @@ describe('post /patch', () => {
       .post('/patch')
       .set('Authorization', token)
       .type('form')
-      .send({ data: { name: 'Yusuf' }, patch: [{ op: 'replace', path: '/name', value: 'Ayinla' }] })
+      .send({
+        data: { name: 'Yusuf' },
+        patch: [{ op: 'replace', path: '/name', value: 'Ayinla' }],
+      })
       .end((err, res) => {
         if (err) {
           return done(err);
@@ -183,34 +189,38 @@ describe('post /patch', () => {
         expect(res.body)
           .to.have.property('name')
           .to.equal('Ayinla');
-        done();
+        return done();
       });
   });
-
 
   it('should have 400 status code', (done) => {
     request(app)
       .post('/patch')
       .set('Authorization', token)
       .type('form')
-      .send({ data: { name: 'Yusuf' }, patch: [{ op: 'replace', path: '/nam/1', value: 'Ayinla' }] })
+      .send({
+        data: { name: 'Yusuf' },
+        patch: [{ op: 'replace', path: '/nam/1', value: 'Ayinla' }],
+      })
       .expect(400, done);
   });
-
 
   it('should return a correct error text', (done) => {
     request(app)
       .post('/patch')
       .set('Authorization', token)
       .type('form')
-      .send({ data: { name: 'Yusuf' }, patch: [{ op: 'replace', path: '/nam/1', value: 'Ayinla' }] })
-      .end((err,res)=>{
-        if(err){
+      .send({
+        data: { name: 'Yusuf' },
+        patch: [{ op: 'replace', path: '/nam/1', value: 'Ayinla' }],
+      })
+      .end((err, res) => {
+        if (err) {
           return done(err);
-
-          expect(res.text).to.equal('Invalid patch values');
         }
-        done();
+        expect(res.text).to.equal('Invalid patch values');
+
+        return done();
       });
   });
 });
